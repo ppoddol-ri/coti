@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>cotizador ♡</title>
+
+  <!-- Tipografías -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Quicksand', sans-serif;
+      color: #6b4e3d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(231,182,200,0.25), transparent 40%),
+        radial-gradient(circle at 80% 90%, rgba(168,193,176,0.25), transparent 40%),
+        #f3efe6;
+    }
+
+    .container {
+      background-color: #fffaf4;
+      padding: 28px 22px;
+      border-radius: 34px;
+      width: 95%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow:
+        0 6px 18px rgba(95, 122, 99, 0.25),
+        inset 0 0 0 2px rgba(231, 182, 200, 0.35);
+    }
+
+    img {
+      max-width: 70%;
+      margin-bottom: 16px;
+    }
+
+    p.lead {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 17px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      text-align: left;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #6b4e3d;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 18px;
+      border: 1.5px dashed #a8c1b0;
+      background-color: #f3efe6;
+      margin-bottom: 6px;
+      outline: none;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input::placeholder {
+      color: #b89aa7;
+    }
+
+    .row {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 999px;
+      border: none;
+      background-color: #e7b6c8;
+      color: #6b4e3d;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button:hover {
+      background-color: #d79aaa;
+    }
+
+    .resultado {
+      margin-top: 18px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    #detalle {
+      font-size: 12px;
+      margin-top: 6px;
+      color: #a68c6d;
+      word-break: break-word;
+    }
+
+    #aclaracion {
+      font-size: 13px;
+      margin-top: 6px;
+      color: #5f7a63;
+    }
+
+    .error {
+      color: #b23a3a;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="https://i.imgur.com/kmRam5G.png" alt="logo cotizador" />
+
+    <p class="lead">cotiza tus links acá ( ﾉ^ω^)ﾉ</p>
+
+    <div class="field">
+      <label for="idr">Monto en IDR</label>
+      <input
+        id="idr"
+        type="number"
+        inputmode="decimal"
+        placeholder="ej: 15000"
+        min="0"
+        step="0.01"
+        aria-describedby="help"
+      />
+      <div id="help" style="font-size:12px;color:#a68c6d;margin-top:6px;">
+        Introduce el monto en rupias indonesias (IDR).
+      </div>
+    </div>
+
+    <button id="cotizarBtn" type="button">cotizar ♡</button>
+
+    <div class="resultado" id="resultado" aria-live="polite" aria-atomic="true"></div>
+    <p id="detalle" aria-hidden="false"></p>
+    <p id="aclaracion"></p>
+    <div id="error" class="error" role="alert" aria-live="assertive"></div>
+  </div>
+
+  <script>
+    (function () {
+      // Configuración (extrae a configuración/variables si lo deseas)
+      const IDR_TO_USD = 15500; // IDR por 1 USD
+      const USD_TO_PEN = 3.5;   // PEN por 1 USD
+      const FEE_PEN = 8;        // fee fijo en PEN
+
+      // Formatters: usar Intl.NumberFormat para mostrar monedas de forma correcta
+      const formatterPEN = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
+      const formatterUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const formatterIDR = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+
+      const input = document.getElementById('idr');
+      const btn = document.getElementById('cotizarBtn');
+      const resultadoEl = document.getElementById('resultado');
+      const detalleEl = document.getElementById('detalle');
+      const aclaracionEl = document.getElementById('aclaracion');
+      const errorEl = document.getElementById('error');
+
+      function clearMessages() {
+        resultadoEl.textContent = '';
+        detalleEl.textContent = '';
+        aclaracionEl.textContent = '';
+        errorEl.textContent = '';
+      }
+
+      function calcular() {
+        clearMessages();
+
+        const raw = input.value;
+        if (!raw) {
+          errorEl.textContent = 'Ingresá un monto para cotizar ♡';
+          return;
+        }
+
+        const idr = Number(raw);
+        if (!isFinite(idr) || idr <= 0) {
+          errorEl.textContent = 'Ingresá un monto válido mayor que 0';
+          return;
+        }
+
+        // Cálculo
+        const usd = idr / IDR_TO_USD;
+        const penFromUsd = usd * USD_TO_PEN;
+        const penTotal = penFromUsd + FEE_PEN;
+
+        // Mostrar resultado formateado
+        resultadoEl.textContent = `≈ ${formatterPEN.format(penTotal)}`;
+
+        detalleEl.textContent =
+          `${formatterIDR.format(idr)} → ${formatterUSD.format(usd)} → ${formatterPEN.format(penFromUsd)} + fee`;
+
+        aclaracionEl.textContent = `Incluye fee fijo de ${formatterPEN.format(FEE_PEN)}. Tasas usadas: 1 USD = ${IDR_TO_USD.toLocaleString()} IDR, 1 USD = ${USD_TO_PEN} PEN.`;
+
+        // Opcional: exponer objeto de resultado para pruebas
+        return {
+          idr,
+          usd,
+          penFromUsd,
+          penTotal
+        };
+      }
+
+      // Eventos
+      btn.addEventListener('click', calcular);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          calcular();
+        }
+      });
+
+      // Mejora futura: función para obtener tasas reales desde una API y permitir actualización dinámica
+      // async function fetchRates() { ... }
+    })();
+  </script>
+</body>
+</html>
