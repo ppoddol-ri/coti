@@ -1,29 +1,27 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>gujunzz ina!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <title>inniedoobee gom!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       height: 100%;
-      font-family: 'Quicksand', sans-serif;
-      background: #f6f0e8;
+      font-family: 'Manrope', sans-serif;
+      background: #f5d6ff;
       color: #5a3e2b;
       display: flex;
       justify-content: center;
       align-items: center;
       text-align: center;
-      background-image: url('https://64.media.tumblr.com/63e6c1102c3d6724c2d2969f417ab166/d514af50d25891f1-f2/s400x600/78f5ff100ae199e174d2792610af5c0ccc1545d4.gifv');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
     }
 
     .container {
-      background-color: rgba(255, 240, 220, 0.9);
+      background-color: #fbfdf7;
       padding: 40px;
       border-radius: 20px;
       max-width: 500px;
